@@ -25,7 +25,7 @@ func init() {
 	}
 
 	pgURL := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=verify-full",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_HOST"),
@@ -43,7 +43,7 @@ func init() {
 }
 
 func TestConnection() {
-	rows, err := DB.Query("SELECT name FROM users")
+	rows, err := DB.Query("SELECT  FROM users")
 	logFatal(err)
 	defer rows.Close()
 
