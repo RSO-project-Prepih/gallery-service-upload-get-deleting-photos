@@ -15,6 +15,8 @@ jobs:
     # See: https://circleci.com/docs/configuration-reference/#steps
     steps:
       - checkout
+      - setup_remote_docker:
+          version: 20.10.6
       - restore_cache:
           keys:
             - go-mod-v4-{{ checksum "go.sum" }}
@@ -32,6 +34,14 @@ jobs:
             gotestsum --junitfile /tmp/test-reports/unit-tests.xml
       - store_test_results:
           path: /tmp/test-reports
+      - run:
+          name: Build Docker Image
+          command: docker build -t jabok123458/rso_prepih:$CIRCLE_SHA1 .
+      - run:
+          name: Push Docker Image
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login --username $DOCKERHUB_USERNAME --password-stdin
+            docker push jabok123458/rso_prepih:$CIRCLE_SHA1
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows

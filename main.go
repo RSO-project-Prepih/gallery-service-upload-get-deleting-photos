@@ -31,8 +31,9 @@ func main() {
 	}
 	defer db.Close()
 
-	healthHandler := health.HealthCheckHandler(db)
-	r.GET("/health", gin.WrapH(healthHandler))
+	liveHandler, readyHandler := health.HealthCheckHandler(db)
+	r.GET("/live", gin.WrapH(liveHandler))
+	r.GET("/ready", gin.WrapH(readyHandler))
 
 	r.GET("/metrics", gin.WrapH(prometheus.GetMetrics()))
 
