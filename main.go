@@ -18,9 +18,9 @@ func main() {
 	log.Println("Starting the application...")
 	r := gin.Default()
 
-	r.POST("/upload", middlewares.CheckImageContentType(), handlers.UploadPhoto)
-	//r.GET("/photos/:user_id", handlers.FetchPhotos)
-	//r.DELETE("/photo/:photo_id", handlers.DeletePhoto)
+	r.POST("/uploadphotos", middlewares.CheckImageContentType(), handlers.UploadPhoto)
+	r.GET("/getphotos/:user_id", handlers.DisplayPhotos)
+	r.DELETE("/deletephoto/:user_id/:image_id", handlers.DeletePhoto)
 
 	srver := &http.Server{
 		Addr:    ":8080",
