@@ -1,7 +1,8 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
@@ -21,11 +22,12 @@ func UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	file, err := c.FormFile("file")
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "File is required"})
+	fileInterface, exists := c.Get("file")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File processing failed"})
 		return
 	}
+	file := fileInterface.(*multipart.FileHeader)
 
 	// Read the file's content
 	fileContent, err := file.Open()
@@ -44,7 +46,7 @@ func UploadPhoto(c *gin.Context) {
 	}
 
 	// Insert the file's content into the database
-	_, err = database.DB.Exec(
+	result, err := database.DB.Exec(
 		"INSERT INTO images (image_name, data, image_id, user_id) VALUES ($1, $2, $3, $4)",
 		input.ImageName,
 		bytesContent,
@@ -52,18 +54,20 @@ func UploadPhoto(c *gin.Context) {
 		input.UserID,
 	)
 	if err != nil {
+		log.Printf("Failed to save the photo to the database: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save the photo to the database"})
 		return
 	}
 
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("Failed to retrieve affected rows: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve affected rows"})
+		return
+	}
+
+	log.Printf("Photo uploaded successfully. Rows affected: %d", rowsAffected)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Photo uploaded successfully"})
 
-}
-
-func FetchPhotos() {
-	fmt.Println("FetchPhotos")
-}
-
-func DeletePhoto() {
-	fmt.Println("DeletePhoto")
 }
