@@ -7,5 +7,6 @@ import (
 )
 
 func GetMetrics() http.Handler {
+
 	return promhttp.Handler()
 }
