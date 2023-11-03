@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -10,7 +11,9 @@ import (
 	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/handlers"
+	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/health"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/middlewares"
+	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,6 +24,17 @@ func main() {
 	r.POST("/uploadphotos", middlewares.CheckImageContentType(), handlers.UploadPhoto)
 	r.GET("/getphotos/:user_id", handlers.DisplayPhotos)
 	r.DELETE("/deletephoto/:user_id/:image_id", handlers.DeletePhoto)
+
+	db, err := sql.Open("postgres", health.GetDSN())
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	healthHandler := health.HealthCheckHandler(db)
+	r.GET("/health", gin.WrapH(healthHandler))
+
+	r.GET("/metrics", gin.WrapH(prometheus.GetMetrics()))
 
 	srver := &http.Server{
 		Addr:    ":8080",
