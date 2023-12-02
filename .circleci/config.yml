@@ -36,12 +36,16 @@ jobs:
           path: /tmp/test-reports
       - run:
           name: Build Docker Image
-          command: docker build -t jabok123458/rso_prepih:$CIRCLE_SHA1 .
+          command: docker build -t jabok123458/rso_prepih:latest .
       - run:
           name: Push Docker Image
           command: |
-            echo "$DOCKERHUB_ACCESS_TOKEN" | docker login --username $DOCKERHUB_USERNAME --password-stdin
-            docker push jabok123458/rso_prepih:$CIRCLE_SHA1
+            echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+            docker push jabok123458/rso_prepih:latest
+      - run:
+          name: Update Kubernetes Deployment
+          command: |
+            kubectl set image deployment/gallery-service gallery-service=jabok123458/rso_prepih:latest --record
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
