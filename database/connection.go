@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -20,10 +19,6 @@ var DB *sql.DB
 
 func init() {
 	// Load .env file for environment variables
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	pgURL := fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=verify-full",
 		os.Getenv("DB_USER"),
