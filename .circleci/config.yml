@@ -42,10 +42,6 @@ jobs:
           command: |
             echo "$DOCKERHUB_ACCESS_TOKEN" | docker login --username $DOCKERHUB_USERNAME --password-stdin
             docker push jabok123458/rso_prepih:latest
-      - run:
-          name: Update Kubernetes Deployment
-          command: |
-            kubectl set image deployment/gallery-service gallery-service=jabok123458/rso_prepih:latest --record
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
