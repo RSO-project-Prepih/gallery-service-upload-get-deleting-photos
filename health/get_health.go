@@ -3,24 +3,15 @@ package health
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/heptiolabs/healthcheck"
 	_ "github.com/lib/pq"
-
-	"github.com/joho/godotenv"
 )
 
 func GetDSN() string {
-
-	if err := godotenv.Load(); err != nil {
-		log.Printf("Error loading .env file: %v", err)
-		// You may want to handle this error differently than a fatal log, depending on your application's requirements
-		return ""
-	}
 
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%s/%s?sslmode=verify-full",
