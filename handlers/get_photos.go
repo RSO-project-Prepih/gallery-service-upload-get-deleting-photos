@@ -3,8 +3,10 @@ package handlers
 import (
 	"encoding/base64"
 	"net/http"
+	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -19,6 +21,7 @@ type PhotoResponse struct {
 
 // DisplayPhotos retrieves all photos for a specific user by their ID
 func DisplayPhotos(c *gin.Context) {
+	starTime := time.Now()
 	userID := c.Param("user_id")
 
 	if _, err := uuid.Parse(userID); err != nil {
@@ -27,7 +30,10 @@ func DisplayPhotos(c *gin.Context) {
 	}
 
 	// Query the database for all images belonging to the user
-	rows, err := database.DB.Query("SELECT image_id, image_name, user_id, data FROM images WHERE user_id = $1", userID)
+	db := database.NewDBConnection()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT image_id, image_name, user_id, data FROM images WHERE user_id = $1", userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query photos"})
 		return
@@ -64,4 +70,6 @@ func DisplayPhotos(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, photos)
+	duration := time.Since(starTime)
+	prometheus.HTTPRequestDuration.WithLabelValues("/getphotos").Observe(duration.Seconds())
 }

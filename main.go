@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"log"
 	"net/http"
 	"os"
@@ -25,13 +24,7 @@ func main() {
 	r.GET("/getphotos/:user_id", handlers.DisplayPhotos)
 	r.DELETE("/deletephoto/:user_id/:image_id", handlers.DeletePhoto)
 
-	db, err := sql.Open("postgres", health.GetDSN())
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-	}
-	defer db.Close()
-
-	liveHandler, readyHandler := health.HealthCheckHandler(db)
+	liveHandler, readyHandler := health.HealthCheckHandler()
 	r.GET("/live", gin.WrapH(liveHandler))
 	r.GET("/ready", gin.WrapH(readyHandler))
 

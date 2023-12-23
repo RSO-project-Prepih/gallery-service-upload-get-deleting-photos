@@ -4,13 +4,17 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func UploadPhoto(c *gin.Context) {
+	startTime := time.Now()
+
 	var input struct {
 		Username  string `form:"username" binding:"required"`
 		UserID    string `form:"user_id" binding:"required"`
@@ -46,7 +50,9 @@ func UploadPhoto(c *gin.Context) {
 	}
 
 	// Insert the file's content into the database
-	result, err := database.DB.Exec(
+	db := database.NewDBConnection()
+	defer db.Close()
+	result, err := db.Exec(
 		"INSERT INTO images (image_name, data, image_id, user_id) VALUES ($1, $2, $3, $4)",
 		input.ImageName,
 		bytesContent,
@@ -69,5 +75,6 @@ func UploadPhoto(c *gin.Context) {
 	log.Printf("Photo uploaded successfully. Rows affected: %d", rowsAffected)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Photo uploaded successfully"})
-
+	duration := time.Since(startTime)
+	prometheus.HTTPRequestDuration.WithLabelValues("/uploadphoto").Observe(duration.Seconds())
 }
