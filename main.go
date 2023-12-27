@@ -14,7 +14,15 @@ import (
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/middlewares"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
+
+// Load .env file for environment variables
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+	}
+}
 
 func main() {
 	log.Println("Starting the application...")
