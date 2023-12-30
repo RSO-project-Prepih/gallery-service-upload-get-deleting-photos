@@ -34,8 +34,8 @@ func CheckImageContentType() gin.HandlerFunc {
 		}
 
 		contentType := http.DetectContentType(buffer)
-		if !strings.HasPrefix(contentType, "image/") {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "The uploaded file is not an image"})
+		if !strings.HasPrefix(contentType, "image/") && contentType != "image/heic" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "The uploaded file is not a supported image type"})
 			c.Abort()
 			return
 		}
@@ -48,7 +48,7 @@ func CheckImageContentType() gin.HandlerFunc {
 			return
 		}
 
-		c.Set("file", file) // Pass the file to the next handler
+		c.Set("file", file)
 		c.Next()
 	}
 }

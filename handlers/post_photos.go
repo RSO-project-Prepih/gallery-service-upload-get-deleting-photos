@@ -17,6 +17,7 @@ import (
 
 func UploadPhoto(c *gin.Context) {
 	startTime := time.Now()
+	log.Printf("UploadPhoto handler started at %v", startTime)
 
 	var input struct {
 		Username  string `form:"username" binding:"required"`
@@ -52,6 +53,37 @@ func UploadPhoto(c *gin.Context) {
 		return
 	}
 
+	imageID := uuid.New().String()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get photo info"})
+		return
+	}
+
+	// Insert the file's content into the database
+	db := database.NewDBConnection()
+	defer db.Close()
+	result, err := db.Exec(
+		"INSERT INTO images (image_name, data, image_id, user_id) VALUES ($1, $2, $3, $4)",
+		input.ImageName,
+		bytesContent,
+		imageID,
+		input.UserID,
+	)
+	if err != nil {
+		log.Printf("Failed to save the photo to the database: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save the photo to the database"})
+		return
+	}
+	log.Printf("Photo saved to the database successfully")
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("Failed to retrieve affected rows: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve affected rows"})
+		return
+	}
+	log.Printf("Rows affected: %d", rowsAffected)
+
 	grpcAddress := "localhost:50051" // Update with actual address if different
 	photoServiceClient, err := grpcclient.NewPhotoServiceClient(grpcAddress)
 	if err != nil {
@@ -59,52 +91,28 @@ func UploadPhoto(c *gin.Context) {
 		return
 	}
 
-	imageID := uuid.New().String()
-
 	response, err := photoServiceClient.GetPhotoInfo(context.Background(), &get_photo_info.PhotoRequest{
 		Photo:   bytesContent,
 		ImageId: imageID,
 	})
 
-	log.Printf("Response from the server: %v", response)
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get photo info"})
-		return
-	}
-
-	if response.Allowed {
-		// Insert the file's content into the database
-		db := database.NewDBConnection()
-		defer db.Close()
-		result, err := db.Exec(
-			"INSERT INTO images (image_name, data, image_id, user_id) VALUES ($1, $2, $3, $4)",
-			input.ImageName,
-			bytesContent,
-			imageID,
-			input.UserID,
-		)
-		if err != nil {
-			log.Printf("Failed to save the photo to the database: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save the photo to the database"})
+	if err != nil || !response.Allowed {
+		// Delete the image if the response is not allowed
+		_, delErr := db.Exec("DELETE FROM images WHERE image_id = $1", imageID)
+		if delErr != nil {
+			log.Printf("Failed to delete the photo: %v", delErr)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the photo"})
 			return
 		}
-
-		rowsAffected, err := result.RowsAffected()
-		if err != nil {
-			log.Printf("Failed to retrieve affected rows: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve affected rows"})
-			return
-		}
-
-		log.Printf("Photo uploaded successfully. Rows affected: %d", rowsAffected)
-
-		c.JSON(http.StatusOK, gin.H{"message": "Photo uploaded successfully"})
-		duration := time.Since(startTime)
-		prometheus.HTTPRequestDuration.WithLabelValues("/uploadphoto").Observe(duration.Seconds())
-	} else {
+		log.Printf("Photo deleted successfully")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Photo not allowed"})
 		return
 	}
+
+	log.Printf("Photo uploaded successfully. Rows affected: %d", rowsAffected)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Photo uploaded successfully"})
+	duration := time.Since(startTime)
+	prometheus.HTTPRequestDuration.WithLabelValues("/uploadphoto").Observe(duration.Seconds())
 
 }

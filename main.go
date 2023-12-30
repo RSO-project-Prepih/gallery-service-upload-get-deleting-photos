@@ -14,23 +14,31 @@ import (
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/middlewares"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
+	"github.com/rs/cors"
 )
-
-// Load .env file for environment variables
-func init() {
-	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-}
 
 func main() {
 	log.Println("Starting the application...")
 	r := gin.Default()
 
+	// Configure CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"}, // your frontend's origin
+		AllowedMethods:   []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowCredentials: true,
+		MaxAge:           int(12 * time.Hour / time.Second),
+	})
+
+	r.Use(func(ctx *gin.Context) {
+		c.HandlerFunc(ctx.Writer, ctx.Request)
+		ctx.Next()
+	})
+
 	r.POST("/uploadphotos", middlewares.CheckImageContentType(), handlers.UploadPhoto)
 	r.GET("/getphotos/:user_id", handlers.DisplayPhotos)
 	r.DELETE("/deletephoto/:user_id/:image_id", handlers.DeletePhoto)
+	r.GET("/photometadata/:user_id", handlers.GetPhotoMetadataByUser)
 
 	liveHandler, readyHandler := health.HealthCheckHandler()
 	r.GET("/live", gin.WrapH(liveHandler))
