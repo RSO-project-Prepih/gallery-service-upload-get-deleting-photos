@@ -36,12 +36,27 @@ jobs:
           path: /tmp/test-reports
       - run:
           name: Build Docker Image
-          command: docker build -t jabok123458/rso_prepih:latest .
+          command: docker build -t jabok123458/rso_prepih:${CIRCLE_SHA1} .
       - run:
           name: Push Docker Image
           command: |
             echo "$DOCKERHUB_ACCESS_TOKEN" | docker login --username $DOCKERHUB_USERNAME --password-stdin
-            docker push jabok123458/rso_prepih:latest
+            docker push jabok123458/rso_prepih:${CIRCLE_SHA1}
+      - run:
+          name: Update Helm Chart
+          command: |
+            git clone git@github.com:RSO-project-Prepih/kubernetis-GKE.git
+            cd kubernetis-GKE/gallery-frontend
+            echo "Before sed command:"
+            cat ./values.yaml
+            sed -i 's|tag: .*|tag: '${CIRCLE_SHA1}'|' ./values.yaml
+            echo "After sed command:"
+            cat ./values.yaml
+            git config user.name "lovc21"
+            git config user.email "jakob.dekleva@gmail.com"
+            git add ./values.yaml
+            git commit -am "Update image tag to ${CIRCLE_SHA1}" || echo "No changes to commit"
+            git push origin mai
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/configuration-reference/#workflows
