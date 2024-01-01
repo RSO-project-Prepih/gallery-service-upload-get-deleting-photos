@@ -46,7 +46,7 @@ jobs:
           name: Update Helm Chart
           command: |
             git clone git@github.com:RSO-project-Prepih/kubernetis-GKE.git
-            cd kubernetis-GKE/gallery-frontend
+            cd kubernetis-GKE/gallery-service
             echo "Before sed command:"
             cat ./values.yaml
             sed -i 's|tag: .*|tag: '${CIRCLE_SHA1}'|' ./values.yaml
