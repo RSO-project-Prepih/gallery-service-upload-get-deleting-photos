@@ -90,11 +90,14 @@ func UploadPhoto(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create photo service client"})
 		return
 	}
+	log.Printf("Photo service client created successfully")
+	log.Printf("photoServiceClient: %v", photoServiceClient)
 
 	response, err := photoServiceClient.GetPhotoInfo(context.Background(), &get_photo_info.PhotoRequest{
 		Photo:   bytesContent,
 		ImageId: imageID,
 	})
+	log.Printf("Response: %v", response)
 
 	if err != nil || !response.Allowed {
 		// Delete the image if the response is not allowed
