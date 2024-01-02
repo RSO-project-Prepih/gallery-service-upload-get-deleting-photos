@@ -24,7 +24,7 @@ func main() {
 	// Configure CORS
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // your frontend's origin
-		AllowedMethods:   []string{"GET", "POST", "PUT", "HEAD", "OPTIONS"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "HEAD", "OPTIONS", "DELETE"},
 		AllowedHeaders:   []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
 		MaxAge:           int(12 * time.Hour / time.Second),
