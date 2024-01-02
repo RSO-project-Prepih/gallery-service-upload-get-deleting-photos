@@ -84,7 +84,7 @@ func UploadPhoto(c *gin.Context) {
 	}
 	log.Printf("Rows affected: %d", rowsAffected)
 
-	grpcAddress := "localhost:50051" // Update with actual address if different
+	grpcAddress := "img-info-service.default.svc.cluster.local:50051" // Update with actual address if different
 	photoServiceClient, err := grpcclient.NewPhotoServiceClient(grpcAddress)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create photo service client"})
