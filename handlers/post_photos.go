@@ -86,10 +86,12 @@ func UploadPhoto(c *gin.Context) {
 
 	grpcAddress := "img-info-service.default.svc.cluster.local:50051" // Update with actual address if different
 	photoServiceClient, err := grpcclient.NewPhotoServiceClient(grpcAddress)
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create photo service client"})
 		return
 	}
+
 	log.Printf("Photo service client created successfully")
 	log.Printf("photoServiceClient: %v", photoServiceClient)
 
@@ -97,25 +99,29 @@ func UploadPhoto(c *gin.Context) {
 		Photo:   bytesContent,
 		ImageId: imageID,
 	})
-	log.Printf("Response: %v", response)
 
-	if err != nil || !response.Allowed {
-		// Delete the image if the response is not allowed
-		_, delErr := db.Exec("DELETE FROM images WHERE image_id = $1", imageID)
-		if delErr != nil {
-			log.Printf("Failed to delete the photo: %v", delErr)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the photo"})
+	log.Printf("Response: %v", response)
+	// temporary solution for frontend
+	/*
+		if err != nil || !response.Allowed {
+			// Delete the image if the response is not allowed
+			_, delErr := db.Exec("DELETE FROM images WHERE image_id = $1", imageID)
+			if delErr != nil {
+				log.Printf("Failed to delete the photo: %v", delErr)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the photo"})
+				return
+			}
+			log.Printf("Photo deleted successfully")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Photo not allowed"})
 			return
 		}
-		log.Printf("Photo deleted successfully")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Photo not allowed"})
-		return
-	}
+	*/
 
 	log.Printf("Photo uploaded successfully. Rows affected: %d", rowsAffected)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Photo uploaded successfully"})
 	duration := time.Since(startTime)
+
 	prometheus.HTTPRequestDuration.WithLabelValues("/uploadphoto").Observe(duration.Seconds())
 
 }
