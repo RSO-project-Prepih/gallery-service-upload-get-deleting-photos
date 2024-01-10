@@ -101,6 +101,9 @@ func UploadPhoto(c *gin.Context) {
 	})
 
 	log.Printf("Response: %v", response)
+	if response == nil {
+		log.Printf("Failed to get response from the photo service: %v", err)
+	}
 
 	if err != nil || !response.Allowed {
 		// Delete the image if the response is not allowed
