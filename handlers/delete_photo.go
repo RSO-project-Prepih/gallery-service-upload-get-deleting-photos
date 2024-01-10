@@ -41,6 +41,7 @@ func DeletePhoto(c *gin.Context) {
 	result, err := stmt.Exec(imageID, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the photo"})
+		c.Error(err)
 		return
 	}
 
