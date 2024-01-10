@@ -5,6 +5,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
@@ -84,7 +85,10 @@ func UploadPhoto(c *gin.Context) {
 	}
 	log.Printf("Rows affected: %d", rowsAffected)
 
-	grpcAddress := "35.233.124.151:5000" // Update with actual address if different
+	grpcAddress := os.Getenv("GRPC_ADDRESS")
+	if grpcAddress == "" {
+		log.Fatal("GRPC_ADDRESS environment variable not set")
+	}
 	photoServiceClient, err := grpcclient.NewPhotoServiceClient(grpcAddress)
 
 	if err != nil {
