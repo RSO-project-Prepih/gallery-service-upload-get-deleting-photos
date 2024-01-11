@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"time"
 
@@ -28,11 +29,13 @@ func DeletePhoto(c *gin.Context) {
 	userID := c.Param("user_id")
 
 	if _, err := uuid.Parse(imageID); err != nil {
+		log.Printf("Invalid image ID format: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid image ID format"})
 		return
 	}
 
 	if _, err := uuid.Parse(userID); err != nil {
+		log.Printf("Invalid user ID format: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID format"})
 		return
 	}
@@ -41,31 +44,38 @@ func DeletePhoto(c *gin.Context) {
 	db := database.NewDBConnection()
 	defer db.Close()
 
-	stmt, err := db.Prepare("DELETE FROM images WHERE image_id = $1 AND user_id = $2")
+	// Start a transaction
+	tx, err := db.Begin()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to prepare the delete statement"})
+		log.Printf("Failed to start transaction: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to start transaction"})
 		return
 	}
-	defer stmt.Close()
 
-	// Execute the delete statement
-	result, err := stmt.Exec(imageID, userID)
+	// First, delete related photo metadata
+	_, err = tx.Exec("DELETE FROM photo_metadata WHERE image_id = $1", imageID)
 	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete photo metadata"})
+		return
+	}
+
+	// Next, delete the photo
+	_, err = tx.Exec("DELETE FROM images WHERE image_id = $1 AND user_id = $2", imageID, userID)
+	if err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the photo"})
-		c.Error(err)
 		return
 	}
 
-	// Check if the photo was actually deleted
-	rowsAffected, err := result.RowsAffected()
+	// Commit the transaction
+	err = tx.Commit()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check the affected rows"})
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
 		return
 	}
-	if rowsAffected == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No photo found with the specified ID for the user"})
-		return
-	}
+
 	duration := time.Since(startTimer)
 	prometheus.HTTPRequestDuration.WithLabelValues("/deletephoto").Observe(duration.Seconds())
 
