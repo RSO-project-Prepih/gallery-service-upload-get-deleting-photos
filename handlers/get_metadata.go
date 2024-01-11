@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	_ "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/docs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +25,14 @@ type PhotoMetadata struct {
 	UpdatedAt    sql.NullString  `json:"updated_at,omitempty"`
 }
 
+// GetPhotoMetadataByUser godoc
+// @Summary Get photo metadata
+// @Description Retrieves metadata for all photos of a specific user
+// @Tags metadata
+// @Produce  json
+// @Param user_id path string true "User ID"
+// @Success 200 {array} string
+// @Router /photometadata/{user_id} [get]
 func GetPhotoMetadataByUser(c *gin.Context) {
 	userID := c.Param("user_id")
 

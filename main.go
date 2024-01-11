@@ -9,14 +9,21 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/docs"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/handlers"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/health"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/middlewares"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/cors"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Gallery Service API
+// @version 1.0
+// @description This is a service for uploading, getting and deleting photos
+// @BasePath /v1
 func main() {
 	log.Println("Starting the application...")
 	r := gin.Default()
@@ -35,17 +42,24 @@ func main() {
 		ctx.Next()
 	})
 
+	// handelers
 	r.POST("/uploadphotos", middlewares.CheckImageContentType(), handlers.UploadPhoto)
 	r.GET("/getphotos/:user_id", handlers.DisplayPhotos)
 	r.DELETE("/deletephoto/:user_id/:image_id", handlers.DeletePhoto)
 	r.GET("/photometadata/:user_id", handlers.GetPhotoMetadataByUser)
 
+	// live and ready
 	liveHandler, readyHandler := health.HealthCheckHandler()
 	r.GET("/live", gin.WrapH(liveHandler))
 	r.GET("/ready", gin.WrapH(readyHandler))
 
+	// metrics
 	r.GET("/metrics", gin.WrapH(prometheus.GetMetrics()))
 
+	// swagger
+	r.GET("/openapi/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// server
 	srver := &http.Server{
 		Addr:    ":8080",
 		Handler: r,

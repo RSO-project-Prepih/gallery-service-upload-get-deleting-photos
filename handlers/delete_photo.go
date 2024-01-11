@@ -5,11 +5,22 @@ import (
 	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	_ "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/docs"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
+// DeletePhoto godoc
+// @Summary Delete a photo
+// @Description Deletes a photo for a given user and image ID
+// @Tags photos
+// @Produce  json
+// @Param user_id path string true "User ID"
+// @Param image_id path string true "Image ID"
+// @Success 200 {object} string
+// @Failure 404 {object} string
+// @Router /deletephoto/{user_id}/{image_id} [delete]
 func DeletePhoto(c *gin.Context) {
 	startTimer := time.Now()
 	// Extract the image_id and user_id from the request parameters

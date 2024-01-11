@@ -6,6 +6,12 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/RSO-project-Prepih/gallery-service-upload-get-deleting-photos/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/RSO-project-Prepih/gallery-service-upload-get-deleting-photos/tree/main)
 
 --- 
+## Swagger openapi documentation
+To see the swagger documentation you need to run the application and go to the following endpoint:
+```bash
+    http://localhost:8080/openapi/index.html
+```
+
 ## Microservice for uploading, getting and deleting photos.
 In this microservice we can upload photos, get photos and delete photos. We can also get all photos from the database and get all photos from the database by user id. 
 

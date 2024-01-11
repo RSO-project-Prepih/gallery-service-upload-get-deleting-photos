@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	_ "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/docs"
 	get_photo_info "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/github.com/RSO-project-Prepih/get-photo-info"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/grpcclient"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
@@ -16,6 +17,19 @@ import (
 	"github.com/google/uuid"
 )
 
+// UploadPhoto godoc
+// @Summary Upload a photo
+// @Description Uploads a photo with the given parameters
+// @Tags photos
+// @Accept  multipart/form-data
+// @Produce  json
+// @Param username formData string true "Username"
+// @Param user_id formData string true "User ID"
+// @Param image_name formData string true "Image Name"
+// @Param file formData file true "Photo file"
+// @Success 200 {object} string
+// @Failure 400 {object} string
+// @Router /uploadphotos [post]
 func UploadPhoto(c *gin.Context) {
 	startTime := time.Now()
 	log.Printf("UploadPhoto handler started at %v", startTime)

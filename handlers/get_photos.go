@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/database"
+	_ "github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/docs"
 	"github.com/RSO-project-Prepih/gallery-service-uplode-get-deliting-photos.git/prometheus"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -20,6 +21,14 @@ type PhotoResponse struct {
 }
 
 // DisplayPhotos retrieves all photos for a specific user by their ID
+// DisplayPhotos godoc
+// @Summary Display user photos
+// @Description Retrieves all photos for a specific user
+// @Tags photos
+// @Produce  json
+// @Param user_id path string true "User ID"
+// @Success 200 {array} PhotoResponse
+// @Router /getphotos/{user_id} [get]
 func DisplayPhotos(c *gin.Context) {
 	starTime := time.Now()
 	userID := c.Param("user_id")
